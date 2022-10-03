@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import Notiflix from 'notiflix';
 import { Section } from 'components/Section/Section';
 import { FeedbackOptions } from 'components/FeedbackOptions/FeedbackOptions';
@@ -13,64 +13,55 @@ Notiflix.Notify.init({
   },
 });
 
-export class Feedback extends Component {
-  state = {
+const Feedback = () => {
+  const [feedback, setFeedback] = useState({
     good: 0,
     neutral: 0,
     bad: 0,
-  };
+  });
 
-  handleStateClick = feedback => {
+  const handleStateClick = feedback => {
     Notiflix.Notify.success(`Thank you for leaving a ${feedback} feedback!`);
-    this.setState(prevState => ({
-      [feedback]: prevState[feedback] + 1,
-    }));
+    setFeedback(prev => ({ ...prev, [feedback]: prev[feedback] + 1 }));
   };
 
-  countTotalFeedback = () => {
-    return Object.values(this.state).reduce((acc, value) => {
+  const countTotalFeedback = () => {
+    return Object.values(feedback).reduce((acc, value) => {
       return (acc += value);
     }, 0);
   };
 
-  countPositiveFeedbackPercentage = () => {
-    const total = this.countTotalFeedback();
-    const { good } = this.state;
-    if (good !== 0) {
-      const result = (good * 100) / total;
+  const countPositiveFeedbackPercentage = () => {
+    const total = countTotalFeedback();
+    if (feedback.good !== 0) {
+      const result = (feedback.good * 100) / total;
       return Math.round(result);
     } else {
       return 0;
     }
   };
 
-  render() {
-    const {
-      state,
-      handleStateClick,
-      countTotalFeedback,
-      countPositiveFeedbackPercentage,
-    } = this;
-    return (
-      <>
-        <Container>
-          <Section title="Please leave feedback">
-            <FeedbackOptions
-              options={state}
-              onLeaveFeedback={handleStateClick}
+  return (
+    <>
+      <Container>
+        <Section title="Please leave feedback">
+          <FeedbackOptions
+            options={feedback}
+            onLeaveFeedback={handleStateClick}
+          />
+          {countTotalFeedback() > 0 ? (
+            <Statistics
+              options={feedback}
+              total={countTotalFeedback()}
+              positivePercentage={countPositiveFeedbackPercentage()}
             />
-            {countTotalFeedback() > 0 ? (
-              <Statistics
-                options={state}
-                total={countTotalFeedback()}
-                positivePercentage={countPositiveFeedbackPercentage()}
-              />
-            ) : (
-              <h2>There is no feedback</h2>
-            )}
-          </Section>
-        </Container>
-      </>
-    );
-  }
-}
+          ) : (
+            <h2>There is no feedback</h2>
+          )}
+        </Section>
+      </Container>
+    </>
+  );
+};
+
+export default Feedback;
